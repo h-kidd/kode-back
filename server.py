@@ -1,10 +1,19 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from decouple import config
+
 
 app = Flask(__name__)
 CORS(app)
 socket = SocketIO(app, cors_allowed_origins="*")
+app.config.from_object(config("APP_SETTINGS"))
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():

@@ -8,6 +8,11 @@ flask = "*"
 flask-cors = "*"
 flask-jwt-extended = "*"
 flask-socketio = "*"
+flask-migrate = "*"
+flask-sqlalchemy = "*"
+psycopg2 = "*"
+python-decouple = "*"
+simple-websocket = "*"
 
 [dev-packages]
 pytest = "*"
