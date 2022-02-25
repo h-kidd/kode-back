@@ -38,6 +38,7 @@ class Student(db.Model):
 class Teacher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
+    password = db.Column(db.String(65), nullable=False)
     #students attribute has relationship to Student model,
     #backref is similar to adding another column to the Student model.
     #Allows when there is a teacher, use student attribute to get the Student
