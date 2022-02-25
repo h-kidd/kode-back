@@ -1,3 +1,4 @@
+from enum import unique
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -9,7 +10,7 @@ from decouple import config
 app = Flask(__name__)
 CORS(app)
 socket = SocketIO(app, cors_allowed_origins="*")
-app.config.from_object(config("APP_SETTINGS"))
+# app.config.from_object(config("APP_SETTINGS"))
 
 # "///" is relative path from current file.
 app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///kode.db"
@@ -20,12 +21,14 @@ migrate = Migrate(app, db)
 
 
 class Student(db.Model):
-    username = db.Column(db.String(20), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(65), nullable=False)
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
-    homework = db.Column(db.String(10), nullable=False, default="0")
-    completed = db.Column(db.String(10), nullable=False, default="0")
+    teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False )
+    # homework = db.Column(db.String(10), nullable=False, default="0")
+    # completed = db.Column(db.String(10), nullable=False, default="0")
 
     # how object is printed
     def __repr__(self):
@@ -33,12 +36,18 @@ class Student(db.Model):
 
 # Teacher and Student relationship: one to many.
 class Teacher(db.Model):
-    username = db.Column(db.String(20), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
     #students attribute has relationship to Student model,
     #backref is similar to adding another column to the Student model.
     #Allows when there is a teacher, use student attribute to get the Student
     #linked to teacher. Lazy arg is used to load necessary data in one go.
     students = db.relationship("Student", backref="student", lazy=True)
+    firstname = db.Column(db.String(20), nullable=False)
+    lastname = db.Column(db.String(20), nullable=False)
+
+    def __repr__(self):
+        return f"Teacher('{self.firstname}','{self.lastname} ')"
 
 
 
