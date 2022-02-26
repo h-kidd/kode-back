@@ -49,7 +49,7 @@ class Teacher(db.Model):
     #backref is similar to adding another column to the Student model.
     #Allows when there is a teacher, use student attribute to get the Student
     #linked to teacher. Lazy arg is used to load necessary data in one go.
-    students = db.relationship("Student", backref="student", lazy=True)
+    students = db.relationship("Student", backref="teacher", lazy=True)
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
 
@@ -58,9 +58,9 @@ class Teacher(db.Model):
 
 class Homework(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    students = db.relationship("Student", backref="studentHomework", lazy=True)
-    topics = db.relationship("Question", backref="questionTopic", lazy=True)
-    difficulties = db.relationship("Question", backref="questionDifficulty", lazy=True)
+    students = db.relationship("Student", backref="homework", lazy=True)
+    topic = db.Column(db.String(20), nullable=False)
+    difficulty = db.Column(db.String(20), nullable=False)
     completed = db.Column(db.Boolean, default=False)
     score = db.Column(db.Integer, default=0)
 
@@ -74,7 +74,7 @@ class Question(db.Model):
     question = db.Column(db.ARRAY(db.String), server_default="{}")
     answer = db.Column(db.ARRAY(db.String), server_default="{}")
     options = db.Column(db.ARRAY(db.String), server_default="{}")
-    homework_id = db.Column(db.Integer, db.ForeignKey("homework.id"), nullable=False )
+    
 
     def __repr__(self):
         return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
