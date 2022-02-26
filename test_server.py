@@ -185,9 +185,9 @@ def test_get_questions(api):
     res = api.get('/questions/maths1/easy')
     assert res.status == '200 OK'
     assert res.json == {'questions': [
-        {'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']},
-        {'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']},
-        {'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']}
+        {'topic':'maths', 'difficulty':'easy', 'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']},
+        {'topic':'maths', 'difficulty':'easy', 'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']},
+        {'topic':'maths', 'difficulty':'easy', 'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']}
     ]}
 
 def test_404(api):

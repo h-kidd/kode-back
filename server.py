@@ -1,4 +1,5 @@
 from enum import unique
+from pydoc_data.topics import topics
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -27,8 +28,7 @@ class Student(db.Model):
     password = db.Column(db.String(65), nullable=False)
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
-    homework = db.Column(db.String(20), nullable=False)
-
+    homework_id = db.Column(db.Integer, db.ForeignKey("homework.id"), nullable=False )
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False )
     # homework_id = db.Column(db.Integer, db.ForeignKey("homework.id"), nullable=False )
     # completed_id = db.Column(db.Integer, db.ForeignKey("completed.id"), nullable=False )
@@ -56,7 +56,28 @@ class Teacher(db.Model):
     def __repr__(self):
         return f"Teacher('{self.firstname}','{self.lastname} ')"
 
+class Homework(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    students = db.relationship("Student", backref="studentHomework", lazy=True)
+    topics = db.relationship("Question", backref="questionTopic", lazy=True)
+    difficulties = db.relationship("Question", backref="questionDifficulty", lazy=True)
+    completed = db.Column(db.Boolean, default=False)
+    score = db.Column(db.Integer, default=0)
 
+    def __repr__(self):
+        return f"Homework('{self.completed}','{self.score} ')"
+
+class Question(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    topic = db.Column(db.String(20), nullable=False)
+    difficulty = db.Column(db.String(20), nullable=False)
+    question = db.Column(db.ARRAY(db.String), server_default="{}")
+    answer = db.Column(db.ARRAY(db.String), server_default="{}")
+    options = db.Column(db.ARRAY(db.String), server_default="{}")
+    homework_id = db.Column(db.Integer, db.ForeignKey("homework.id"), nullable=False )
+
+    def __repr__(self):
+        return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
 
 
 # Routes
