@@ -13,6 +13,8 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
+from hmac import compare_digest
+
 app = Flask(__name__)
 # "///" is relative path from current file.
 app.config["SQLALCHEMY_DATABASE_URI"]="postgresql://postgres:password@kode.c4rgiwquolnv.eu-west-2.rds.amazonaws.com:5432/kode"
@@ -64,6 +66,8 @@ class Teacher(db.Model):
 
     def __repr__(self):
         return f"Teacher('{self.firstname}','{self.lastname} ')"
+
+    
 
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -119,7 +123,8 @@ def token():
     password = request.json.get("password", None)
 
     user = Student.query.filter_by(username=username).one_or_none() or Teacher.query.filter_by(username=username).one_or_none()
-    if not user or not user.check_password(password):
+    password = Student.query.filter_by(password=password).one_or_none() or Teacher.query.filter_by(password=password).one_or_none()
+    if not user or not password:
         return jsonify("Wrong username or password"), 401
 
     access_token = create_access_token(identity=user)
