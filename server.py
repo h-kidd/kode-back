@@ -7,6 +7,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from decouple import config
 
+#flaskjwt
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 # "///" is relative path from current file.
@@ -15,6 +20,9 @@ CORS(app)
 socket = SocketIO(app, cors_allowed_origins="*")
 # app.config.from_object(config("APP_SETTINGS"))
 
+# Setup the Flask-JWT-Extended extension
+app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+jwt = JWTManager(app)
 
 
 # Creating db instance
@@ -84,6 +92,19 @@ class Question(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return {'message': 'Hello!'}
+
+
+# Create a route to authenticate your users and return JWTs. The
+# create_access_token() function is used to actually generate the JWT.
+@app.route("/token", methods=["POST"])
+def token():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+    if username != "test" or password != "test":
+        return jsonify({"msg": "Bad username or password"}), 401
+
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token)
 
 # socket
 @socket.on('create')
