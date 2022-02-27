@@ -16,6 +16,7 @@ from flask_jwt_extended import JWTManager
 app = Flask(__name__)
 # "///" is relative path from current file.
 app.config["SQLALCHEMY_DATABASE_URI"]="postgresql://postgres:password@kode.c4rgiwquolnv.eu-west-2.rds.amazonaws.com:5432/kode"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 CORS(app)
 socket = SocketIO(app, cors_allowed_origins="*")
 # app.config.from_object(config("APP_SETTINGS"))
@@ -64,6 +65,22 @@ class Teacher(db.Model):
     def __repr__(self):
         return f"Teacher('{self.firstname}','{self.lastname} ')"
 
+# Register a callback function that takes whatever object is passed in as the
+# identity when creating JWTs and converts it to a JSON serializable format.
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.id
+
+
+# Register a callback function that loads a user from your database whenever
+# a protected route is accessed. This should return any python object on a
+# successful lookup, or None if the lookup failed for any reason (for example
+# if the user has been deleted from the database).
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return Student.query.filter_by(id=identity).one_or_none()
+
 class Homework(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     students = db.relationship("Student", backref="homework", lazy=True)
@@ -100,10 +117,12 @@ def home():
 def token():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
-    if username != "test" or password != "test":
-        return jsonify({"msg": "Bad username or password"}), 401
 
-    access_token = create_access_token(identity=username)
+    user = Student.query.filter_by(username=username).one_or_none() or Teacher.query.filter_by(username=username).one_or_none()
+    if not user or not user.check_password(password):
+        return jsonify("Wrong username or password"), 401
+
+    access_token = create_access_token(identity=user)
     return jsonify(access_token=access_token)
 
 # socket
