@@ -1,10 +1,9 @@
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import create_access_token, unset_jwt_cookies,  set_access_cookies, get_jwt, get_jwt_identity, jwt_required
 from flask import jsonify, request
 from server import jwt, app, db
 from server.models import Student ,Teacher, Question, Exercise
 from server.models import student_schema, students_schema
+from datetime import timedelta, timezone, datetime
 
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -28,12 +27,22 @@ def user_lookup_callback(_jwt_header, jwt_data):
 def home():
     return {'message': 'Hello!'}
 
-@app.route('/students', methods=['GET'])
-def get_all_students():
-    all_students = Student.query.all()
-    result_set = students_schema.dump(all_students)
-    return jsonify(result_set)
 
+# Using an `after_request` callback, we refresh any token that is within 30
+# minutes of expiring. Change the timedeltas to match the needs of your application.
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            set_access_cookies(response, access_token)
+        return response
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original respone
+        return response
 
 # Create a route to authenticate your users and return JWTs. The
 # create_access_token() function is used to actually generate the JWT.
@@ -43,12 +52,24 @@ def token():
     password = request.json.get("password", None)
 
     user = Student.query.filter_by(username=username).one_or_none() or Teacher.query.filter_by(username=username).one_or_none()
-    password = Student.query.filter_by(password=password).one_or_none() or Teacher.query.filter_by(password=password).one_or_none()
+    password = Student.query.filter_by(password=password) or Teacher.query.filter_by(password=password)
     if not user or not password:
         return jsonify("Wrong username or password"), 401
 
     access_token = create_access_token(identity=user)
     return jsonify(access_token=access_token)
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    response = jsonify({"msg": "logout successful"})
+    unset_jwt_cookies(response)
+    return response
+
+@app.route('/students', methods=['GET'])
+def get_all_students():
+    all_students = Student.query.all()
+    result_set = students_schema.dump(all_students)
+    return jsonify(result_set)
 
 # Get student id route
 @app.route('/students/<int:id>', methods=["GET"])
