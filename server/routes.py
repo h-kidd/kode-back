@@ -2,8 +2,8 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask import jsonify, request
-from server import jwt, app
-from server.models import Student ,Teacher, Question, Homework
+from server import jwt, app, db
+from server.models import Student ,Teacher, Question, Exercise
 from server.models import student_schema, students_schema
 
 # Register a callback function that takes whatever object is passed in as the
@@ -49,3 +49,54 @@ def token():
 
     access_token = create_access_token(identity=user)
     return jsonify(access_token=access_token)
+
+# Get student id route
+@app.route('/students/<int:id>', methods=["GET"])
+def get_student(id):
+    student_data = Student.query.get_or_404(int(id))
+    return student_schema.jsonify(student_data)
+
+# Create new student route
+@app.route("/students", methods=["POST"])
+def create_student():
+    try: 
+        username = request.json["username"]
+        password = request.json["password"]
+        firstname = request.json["firstname"]
+        lastname = request.json["lastname"]
+        teacher_id = request.json["teacher_id"]
+        
+        new_student = Student(username = username, password = password, firstname = firstname, lastname = lastname, teacher_id=teacher_id)
+        db.session.add(new_student)
+        db.session.commit()
+
+        return student_schema.jsonify(new_student)
+    except Exception as e:
+        return jsonify({"Error" : "Can't create"})
+
+@app.route("/students/<int:id>", methods=["PATCH"])
+def update_student(id):
+    get_student = Student.query.get_or_404(int(id))
+    
+    username = request.json["username"]
+    password = request.json["password"]
+    firstname = request.json["firstname"]
+    lastname = request.json["lastname"]
+    teacher_id = request.json["teacher_id"]
+
+    get_student.username = username
+    get_student.password = password
+    get_student.firstname = firstname
+    get_student.lastname = lastname
+    get_student.teacher_id = teacher_id
+
+    db.session.commit()
+
+    return student_schema.jsonify(get_student)
+
+@app.route("/students/<int:id>", methods=["DELETE"])
+def delete_student(id):
+    get_student = Student.query.get_or_404(int(id))
+    db.session.delete(get_student)
+    db.session.commit()
+    return jsonify({"Success": "deleted"})

@@ -10,12 +10,13 @@ from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 CORS(app)
-app.config["SQLALCHEMY_DATABASE_URI"]="DATABASEURL"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
-
-
+# app.config["SQLALCHEMY_DATABASE_URI"]="DATABASEURL"
+# app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config.from_object(config("APP_SETTINGS"))
+app.config["JWT_SECRET_KEY"] = config("SECRET_KEY")  # Change this!
+
+
+
 socket = SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
