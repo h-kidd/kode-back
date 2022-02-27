@@ -6,6 +6,7 @@ from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from decouple import config
+from flask_marshmallow import Marshmallow
 
 #flaskjwt
 from flask_jwt_extended import create_access_token
@@ -30,6 +31,7 @@ jwt = JWTManager(app)
 
 # Creating db instance
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 migrate = Migrate(app, db)
 
 
@@ -48,8 +50,21 @@ class Student(db.Model):
     # completed = db.Column(db.String(10), nullable=False, default="0")
 
     # how object is printed
-    def __repr__(self):
-        return f"Student('{self.firstname}','{self.lastname} ')"
+    # def __repr__(self):
+    #     return f"Student('{self.firstname}','{self.lastname} ')"
+    def __init__(self, username, password, firstname, lastname, homework_id, teacher_id):
+        self.username = username
+        self.password= password
+        self.firstname = firstname
+        self.lastname = lastname
+        self.homework_id= homework_id
+        self.teacher_id= teacher_id
+    
+class StudentSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "username", "password", "firstname", "lastname", "homework_id", "teacher_id")
+student_schema = StudentSchema(many = False)
+students_schema = StudentSchema(many = True)
 
 # Teacher and Student relationship: one to many.
 class Teacher(db.Model):
@@ -64,8 +79,14 @@ class Teacher(db.Model):
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
 
-    def __repr__(self):
-        return f"Teacher('{self.firstname}','{self.lastname} ')"
+    # def __repr__(self):
+    #     return f"Teacher('{self.firstname}','{self.lastname} ')"
+    def __init__(self, username, password, firstname, lastname):
+        self.username = username
+        self.password= password
+        self.firstname = firstname
+        self.lastname= lastname
+
 
     
 
@@ -93,8 +114,13 @@ class Homework(db.Model):
     completed = db.Column(db.Boolean, default=False)
     score = db.Column(db.Integer, default=0)
 
-    def __repr__(self):
-        return f"Homework('{self.completed}','{self.score} ')"
+    # def __repr__(self):
+    #     return f"Homework('{self.completed}','{self.score} ')"
+    def __init__(self, topics, difficulty, completed, score):
+        self.topics = topics
+        self.difficulty= difficulty
+        self.completed = completed
+        self.score= score
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -105,14 +131,26 @@ class Question(db.Model):
     options = db.Column(db.ARRAY(db.String), server_default="{}")
     
 
-    def __repr__(self):
-        return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
+    # def __repr__(self):
+    #     return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
+    def __init__(self, topic, difficulty, question, answer, options):
+        self.topics = topic
+        self.difficulty= difficulty
+        self.question = question
+        self.answer= answer
+        self.options= options
 
 
 # Routes
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return {'message': 'Hello!'}
+
+@app.route('/students', methods=['GET'])
+def get_all_students():
+    all_students = Student.query.all()
+    result_set = students_schema.dump(all_students)
+    return jsonify(result_set)
 
 
 # Create a route to authenticate your users and return JWTs. The

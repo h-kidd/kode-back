@@ -13,6 +13,7 @@ flask-sqlalchemy = "*"
 psycopg2 = "*"
 python-decouple = "*"
 simple-websocket = "*"
+flask-marshmallow = "*"
 
 [dev-packages]
 pytest = "*"
