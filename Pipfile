@@ -14,6 +14,7 @@ psycopg2 = "*"
 python-decouple = "*"
 simple-websocket = "*"
 flask-marshmallow = "*"
+marshmallow-sqlalchemy = "*"
 
 [dev-packages]
 pytest = "*"
@@ -23,6 +24,6 @@ pytest-cov = "*"
 python_version = "3.10"
 
 [scripts]
-dev = "python server.py"
+dev = "python run.py"
 test = "pytest ."
 coverage = "pytest --cov-report term-missing --cov=."
