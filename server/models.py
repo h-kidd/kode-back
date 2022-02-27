@@ -1,6 +1,7 @@
 from server import db, ma
 
-
+# ===============================STUDENT=======================================
+# Student model
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -14,14 +15,16 @@ class Student(db.Model):
     def __repr__(self):
         return f"Student('{self.firstname}','{self.lastname} ')"
 
-    
+# Student schema to help jsonify objects
 class StudentSchema(ma.Schema):
     class Meta:
         fields = ("id", "username", "password", "firstname", "lastname", "exercise_id", "teacher_id")
 student_schema = StudentSchema(many = False)
 students_schema = StudentSchema(many = True)
 
+# ===============================TEACHERS=======================================
 # Teacher and Student relationship: one to many.
+# Teacher model
 class Teacher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -36,12 +39,12 @@ class Teacher(db.Model):
 
     def __repr__(self):
         return f"Teacher('{self.firstname}','{self.lastname} ')"
-
-
-
-    
-
-
+# Teacher schema
+class TeachersSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "username", "password", "firstname", "lastname")
+teacher_schema = TeachersSchema(many = False)
+teachers_schema = TeachersSchema(many = True)
 
 class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
