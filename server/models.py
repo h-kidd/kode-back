@@ -108,4 +108,13 @@ class Question(db.Model):
         return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
 
 
+class CompletedSchema(ma.Schema):
+    class Meta:
+        fields = ("student_id", "exercise_id", "topic", "difficulty", "completed", "score")
+completed_schema = CompletedSchema(many=True)
+completed_single_schema=CompletedSchema()
     
+class ClassExercise(ma.Schema):
+    class Meta:
+        fields = ("student_id", "exercise_id","username","password_hashed", "firstname", "lastname")
+classExercises_schema = ClassExercise(many=True)
