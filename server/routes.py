@@ -181,4 +181,21 @@ def update_teacher(id):
 
     return student_schema.jsonify(get_teacher)
 
+# Update teacher route
+@app.route("/teachers/<int:id>/class", methods=["PATCH"])
+def update_teacher_class_homework(id):
+   
+    results =  Student.query.filter(Student.teacher_id == id).all()
+
+    homework = request.json["exercise_id"]
+
+    for r in results:
+        r.exercise_id = homework
+
+    db.session.commit()
+    
+    return students_schema.jsonify(results)
+
+
+
 
