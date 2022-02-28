@@ -1,5 +1,11 @@
 from server import db, ma
 from werkzeug.security import generate_password_hash, check_password_hash
+
+student_exercise = db.Table('student_exercise',
+    db.Column('student_id', db.Integer, db.ForeignKey('student.id')),
+    db.Column('exercise_id', db.Integer, db.ForeignKey('exercise.id'))
+)
+
 # ===============================STUDENT=======================================
 # Student model
 class Student(db.Model):
@@ -8,7 +14,9 @@ class Student(db.Model):
     password_hashed = db.Column(db.String(128), nullable=False)
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
-    exercise_id = db.Column(db.Integer, db.ForeignKey("exercise.id"), nullable=True )
+    # exercise_id = db.Column(db.Integer, db.ForeignKey("exercise.id"), nullable=True )
+    #backref makes students column in exercise table
+    exercises = db.relationship('Exercise', secondary = student_exercise, backref='students')
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False )
 
     #password stuff
@@ -68,7 +76,7 @@ teachers_schema = TeachersSchema(many = True)
 
 class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    students = db.relationship("Student", backref="exercise", lazy=True)
+    # students = db.relationship("Student", backref="exercise", lazy=True)
     topic = db.Column(db.String(20), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)
     completed = db.Column(db.Boolean, default=False)
