@@ -28,7 +28,7 @@ class Student(db.Model):
 # Student schema to help jsonify objects
 class StudentSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "password", "firstname", "lastname", "exercise_id", "teacher_id")
+        fields = ("id", "username", "password_hashed", "firstname", "lastname", "exercise_id", "teacher_id")
 student_schema = StudentSchema(many = False)
 students_schema = StudentSchema(many = True)
 
@@ -62,7 +62,7 @@ class Teacher(db.Model):
 # Teacher schema
 class TeachersSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "password", "firstname", "lastname")
+        fields = ("id", "username", "password_hashed", "firstname", "lastname")
 teacher_schema = TeachersSchema(many = False)
 teachers_schema = TeachersSchema(many = True)
 
@@ -88,4 +88,6 @@ class Question(db.Model):
 
     def __repr__(self):
         return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
+
+
     

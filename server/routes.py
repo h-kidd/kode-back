@@ -141,8 +141,9 @@ def get_teacher(id):
 
 @app.route("/teachers/<int:id>/class")
 def get_teacher_class(id):
-    get_teacher = Teacher.query.get_or_404(int(id)).students
-    return teacher_schema.jsonify(get_teacher)
+    # result = db.session.query(Student, Teacher).join(Teacher).filter(Teacher.id == id).all()
+    result = db.session.query(Teacher.firstname, Teacher.id, Student.id, Student.firstname, Student.lastname, Student.username, Student.password_hashed, Student.lastname, Student.exercise_id, Student.teacher_id).join(Teacher).filter(Teacher.id == id).all()
+    return teachers_schema.jsonify(result)
 
 # Create teacher route
 @app.route("/teachers", methods=["POST"])
