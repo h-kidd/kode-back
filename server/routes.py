@@ -3,7 +3,7 @@ from flask import jsonify, request
 from server import jwt, app, db
 from server.models import Student ,Teacher, Question, Exercise
 from datetime import timedelta, timezone, datetime
-from server.models import student_schema, students_schema, teacher_schema, teachers_schema
+from server.models import student_schema, students_schema, teacher_schema, teachers_schema, student_exercise, studentsexercise_schema
 
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -142,7 +142,8 @@ def get_teacher(id):
 @app.route("/teachers/<int:id>/class")
 def get_teacher_class(id):
     # result = db.session.query(Student, Teacher).join(Teacher).filter(Teacher.id == id).all()
-    result = db.session.query(Teacher.firstname, Teacher.id, Student.id, Student.firstname, Student.lastname, Student.username, Student.password_hashed, Student.lastname, Student.exercise_id, Student.teacher_id).join(Teacher).filter(Teacher.id == id).all()
+    # result = db.session.query(Teacher.firstname, Teacher.id, Student.id, Student.firstname, Student.lastname, Student.username, Student.password_hashed, Student.lastname, Student.teacher_id).join(Teacher).filter(Teacher.id == id).all()
+    result =  db.session.query(Student.username, Student.password_hashed, Student.firstname, Student.lastname, Student.teacher_id).filter(Student.teacher_id == id)
     return students_schema.jsonify(result)
 
 # Create teacher route
@@ -181,11 +182,17 @@ def update_teacher(id):
 
     return student_schema.jsonify(get_teacher)
 
-# Update teacher route
-@app.route("/teachers/<int:id>/class", methods=["PATCH"])
-def update_teacher_class_homework(id):
-   
-    results =  Student.query.filter(Student.teacher_id == id).all()
+# Get teacher class's exercise
+@app.route("/teachers/<int:id>/class/exercise")
+def get_teacher_class_exercise(id):
+    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id).join(Student).filter(Student.teacher_id == id)
+    return studentsexercise_schema.jsonify(results)
+
+
+# Update teacher classes homework
+@app.route("/teachers/<int:id>/class/exercise", methods=["POST"])
+def update_teacher_class_homework(id):  
+    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id).join(Student).filter(Student.teacher_id == id)
 
     homework = request.json["exercise_id"]
 
@@ -195,6 +202,30 @@ def update_teacher_class_homework(id):
     db.session.commit()
     
     return students_schema.jsonify(results)
+
+# Get specific student's exercise/homework
+@app.route("/students/<int:id>/exercise")
+def get_students_exercise(id):
+    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id).join(Student).filter(student_exercise.c.student_id == id)
+    return studentsexercise_schema.jsonify(results)
+
+
+@app.route("/students/<int:id>/exercise/<int:exid>", methods=["GET"])
+def get_specifc_student_exercise(id, exid):
+    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id).join(Student).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
+    return studentsexercise_schema.jsonify(results)
+
+
+# Complete specific student exercise
+@app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["PATCH"])
+def complete_student_exercise(id, exid):
+    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
+
+    for r in results:
+        Exercise.completed = True
+    return {'message': 'completed!'}
+# ======================Homework/Exercise==================================
+
 
 
 

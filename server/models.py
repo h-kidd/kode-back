@@ -6,6 +6,11 @@ student_exercise = db.Table('student_exercise',
     db.Column('exercise_id', db.Integer, db.ForeignKey('exercise.id'))
 )
 
+class StudentexerciseSchema(ma.Schema):
+    class Meta:
+        fields = ("student_id", "exercise_id")
+studentsexercise_schema = StudentexerciseSchema(many = True)
+
 # ===============================STUDENT=======================================
 # Student model
 class Student(db.Model):
@@ -36,7 +41,7 @@ class Student(db.Model):
 # Student schema to help jsonify objects
 class StudentSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "password_hashed", "firstname", "lastname", "exercise_id", "teacher_id")
+        fields = ("id", "username", "password_hashed", "firstname", "lastname" "teacher_id")
 student_schema = StudentSchema(many = False)
 students_schema = StudentSchema(many = True)
 
@@ -84,6 +89,11 @@ class Exercise(db.Model):
 
     def __repr__(self):
         return f"Exercise('{self.completed}','{self.score} ')"
+
+class ExerciseSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "topic", "difficulty", "completed", "score")
+exercisesSchema = ExerciseSchema(many = True)
  
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
