@@ -1,15 +1,25 @@
 from server import db, ma
-
+from werkzeug.security import generate_password_hash, check_password_hash
 # ===============================STUDENT=======================================
 # Student model
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(65), nullable=False)
+    password_hashed = db.Column(db.String(128), nullable=False)
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
     exercise_id = db.Column(db.Integer, db.ForeignKey("exercise.id"), nullable=True )
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False )
+
+    #password stuff
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute!')
+    @password.setter
+    def password(self,password):
+        self.password_hashed = generate_password_hash(password)
+    def verify_password(self,password):
+        return check_password_hash(self.password_hashed, password)
     
      # how object is printed
     def __repr__(self):
@@ -28,7 +38,7 @@ students_schema = StudentSchema(many = True)
 class Teacher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(65), nullable=False)
+    password_hashed = db.Column(db.String(128), nullable=False)
     #students attribute has relationship to Student model,
     #backref is similar to adding another column to the Student model.
     #Allows when there is a teacher, use student attribute to get the Student
@@ -36,6 +46,16 @@ class Teacher(db.Model):
     students = db.relationship("Student", backref="teacher", lazy=True)
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
+
+    #password stuff
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute!')
+    @password.setter
+    def password(self,password):
+        self.password_hashed = generate_password_hash(password)
+    def verify_password(self,password):
+        return check_password_hash(self.password_hashed, password)
 
     def __repr__(self):
         return f"Teacher('{self.firstname}','{self.lastname} ')"

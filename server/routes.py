@@ -19,7 +19,7 @@ def user_identity_lookup(user):
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
-    return Student.query.filter_by(id=identity).one_or_none()
+    return Student.query.filter_by(id=identity).one_or_none() or Teacher.query.filter_by(id=identity).one_or_none()
 
 
 # Routes
@@ -52,8 +52,7 @@ def token():
     password = request.json.get("password", None)
 
     user = Student.query.filter_by(username=username).one_or_none() or Teacher.query.filter_by(username=username).one_or_none()
-    password = Student.query.filter_by(password=password) or Teacher.query.filter_by(password=password)
-    if not user or not password:
+    if not user or not user.verify_password(password):
         return jsonify("Wrong username or password"), 401
 
     access_token = create_access_token(identity=user)
@@ -182,17 +181,3 @@ def update_teacher(id):
     return student_schema.jsonify(get_teacher)
 
 
-# Create a route to authenticate your users and return JWTs. The
-# create_access_token() function is used to actually generate the JWT.
-@app.route("/token", methods=["POST"])
-def token():
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-
-    user = Student.query.filter_by(username=username).one_or_none() or Teacher.query.filter_by(username=username).one_or_none()
-    password = Student.query.filter_by(password=password).one_or_none() or Teacher.query.filter_by(password=password).one_or_none()
-    if not user or not password:
-        return jsonify("Wrong username or password"), 401
-
-    access_token = create_access_token(identity=user)
-    return jsonify(access_token=access_token)
