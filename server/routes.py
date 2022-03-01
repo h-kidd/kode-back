@@ -217,27 +217,29 @@ def get_specifc_student_exercise(id, exid):
 
 
 # Complete specific student exercise
-@app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["PATCH"])
+@app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["GET"])
 def complete_student_exercise(id, exid):
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid).all()
-    print(results)
-    
+    # results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
+
+    # results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.completed).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid).first()
 
 
-    results[0].completed = True
-    db.session.commit()
+    results = db.session.query(student_exercise.c.student_id).join(Exercise).filter(student_exercise.c.student_id == id, student_exercise.c.exercise_id == exid).one()
+   
 
-    return completed_single_schema.jsonify(results)
+    return studentsexercise_schema.jsonify(results)
 
     
 # ======================Homework/Exercise==================================
 
 
 
-@app.route("/students/<int:id>/exercise/<int:exid>/s", methods=["GET"])
-def sda(id, exid):
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.completed).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
+# @app.route("/students/<int:id>/exercise/<int:exid>/s", methods=["GET"])
+# def sda(id, exid):
+#     results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.completed).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
 
-    return completed_schema.jsonify(results)
+
+
+#     return completed_schema.jsonify(results)
 
 
