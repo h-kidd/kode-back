@@ -201,9 +201,15 @@ def update_teacher_class_homework(id):
     return studentExercises_schema.jsonify(results)
 
 # Get specific student's exercise/homework
-@app.route("/students/<int:id>/exercise")
+@app.route("/students/<int:id>/exercises")
 def get_students_exercise(id):
     results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id)
+    return studentExercises_schema.jsonify(results)
+
+# View non completed homework
+@app.route("/students/<int:id>/notcompletedexercises")
+def get_students_notcompleted_exercise(id):
+    results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.completed == False)
     return studentExercises_schema.jsonify(results)
 
 
