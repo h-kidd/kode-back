@@ -1,10 +1,16 @@
 from server import db, ma
 from werkzeug.security import generate_password_hash, check_password_hash
 
-student_exercise = db.Table('student_exercise',
-    db.Column('student_id', db.Integer, db.ForeignKey('student.id')),
-    db.Column('exercise_id', db.Integer, db.ForeignKey('exercise.id'))
-)
+class Association(db.Model):
+
+    student_id = db.Column(db.ForeignKey('student.id'), primary_key=True)
+    exercise_id = db.Column(db.ForeignKey('exercise.id'), primary_key=True)
+    completed= db.Column(db.Boolean, default=False)
+    score = db.Column(db.Integer, default=0)
+    exercise = db.relationship('Exercise', back_populates='students')
+    student = db.relationship('Student', back_populates='exercises')
+
+
 
 class StudentexerciseSchema(ma.Schema):
     class Meta:
@@ -21,7 +27,7 @@ class Student(db.Model):
     lastname = db.Column(db.String(20), nullable=False)
     # exercise_id = db.Column(db.Integer, db.ForeignKey("exercise.id"), nullable=True )
     #backref makes students column in exercise table
-    exercises = db.relationship('Exercise', secondary = student_exercise, backref='students')
+    exercises = db.relationship("Association", back_populates="student")
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False )
 
     #password stuff
@@ -81,11 +87,9 @@ teachers_schema = TeachersSchema(many = True)
 
 class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    # students = db.relationship("Student", backref="exercise", lazy=True)
+    students = db.relationship("Association", back_populates="exercise")
     topic = db.Column(db.String(20), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)
-    completed = db.Column(db.Boolean, default=False)
-    score = db.Column(db.Integer, default=0)
 
     def __repr__(self):
         return f"Exercise('{self.completed}','{self.score} ')"

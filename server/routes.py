@@ -3,7 +3,7 @@ from flask import jsonify, request
 from server import jwt, app, db
 from server.models import Student ,Teacher, Question, Exercise
 from datetime import timedelta, timezone, datetime
-from server.models import student_schema, students_schema, teacher_schema, teachers_schema, student_exercise, studentsexercise_schema, completed_schema, classExercises_schema, completed_single_schema
+from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentsexercise_schema, completed_schema, classExercises_schema, completed_single_schema
 
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -219,15 +219,15 @@ def get_specifc_student_exercise(id, exid):
 # Complete specific student exercise
 @app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["PATCH"])
 def complete_student_exercise(id, exid):
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid).all()
-    print(results)
+    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
     
-
-
-    results[0].completed = True
+    
+   
+    results[0].completed= True
     db.session.commit()
 
-    return completed_single_schema.jsonify(results)
+
+    return completed_schema.jsonify(results)
 
     
 # ======================Homework/Exercise==================================
