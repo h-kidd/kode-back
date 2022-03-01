@@ -225,13 +225,21 @@ def complete_student_exercise(id, exid):
     db.session.commit()
     return studentoneExercises_schema.jsonify(results)
 
+#Update student's exercise score
+@app.route("/students/<int:id>/exercise/<int:exid>/score", methods=["PATCH"])
+def update_student_score(id, exid):
+    results = Association.query.filter(Association.student_id == id).filter(Association.exercise_id == exid).first()
+    
+    homework = request.json["score"]
+    results.score = homework
+    db.session.commit()
+    return studentoneExercises_schema.jsonify(results)
 
-# @app.route("/students/<int:id>/exercise/<int:exid>/s", methods=["GET"])
-# def sda(id, exid):
-#     results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.completed).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
-
-
-
-#     return completed_schema.jsonify(results)
+# View completed exercises seperate from non completed ones
+@app.route("/students/<int:id>/completedexercises", methods=["GET"])
+def completed_student_exercises(id):
+    results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.completed == True)
+    return studentExercises_schema.jsonify(results)
+    
 
 
