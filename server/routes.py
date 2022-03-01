@@ -3,7 +3,7 @@ from flask import jsonify, request
 from server import jwt, app, db
 from server.models import Student ,Teacher, Question, Exercise, Association
 from datetime import timedelta, timezone, datetime
-from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentExercises_schema, teacherClass_schema, studentoneExercises_schema
+from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentExercises_schema, teacherClass_schema, studentoneExercises_schema, questions_schema
 
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -187,18 +187,19 @@ def get_teacher_class_exercise(id):
     return teacherClass_schema.jsonify(results)
 
 # Update teacher classes homework
-@app.route("/teachers/<int:id>/class/exercise", methods=["POST"])
-def update_teacher_class_homework(id):  
-    results = Teacher.query.filter(Teacher.id == id).all()
+@app.route("/homework", methods=["POST"])
+def create_student_homework():  
+    try:
+        student = request.json["student_id"]
+        homework = request.json["exercise_id"]
 
-    homework = request.json["exercise_id"]
-
-    for r in results:
-        r.exercise_id = homework
-
-    db.session.commit()
-    
-    return studentExercises_schema.jsonify(results)
+        new_homework = Association(student_id = student, exercise_id = homework)
+        db.session.add(new_homework)
+        db.session.commit()
+   
+        return studentoneExercises_schema.jsonify(new_homework)
+    except Exception as e:
+        return jsonify({"Error" : "Can't create homework"})
 
 # Get specific student's exercise/homework
 @app.route("/students/<int:id>/exercises")
@@ -247,5 +248,9 @@ def completed_student_exercises(id):
     results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.completed == True)
     return studentExercises_schema.jsonify(results)
     
-
+@app.route("/questions")
+def get_questions():
+    questions = Question.query.all()
+    result_set = questions_schema.dump(questions)
+    return jsonify(result_set)
 

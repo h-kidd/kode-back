@@ -1,3 +1,4 @@
+from dataclasses import fields
 from server import db, ma
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -122,7 +123,13 @@ class StudentExercise(ma.Schema):
 studentExercises_schema = StudentExercise(many=True)
 studentoneExercises_schema = StudentExercise(many=False)
 
+
 class CompleteExercise(ma.Schema):
         class Meta:
             fields = ("student_id", "exercise_id","completed","score")
 completeExercise_schema = StudentExercise(many=True)
+
+class QuestionSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "topic", "difficulty", "question", "answer", "options")
+questions_schema = QuestionSchema(many=True)
