@@ -16,7 +16,7 @@ CORS(app)
 app.config.from_object(config("APP_SETTINGS"))
 app.config["JWT_SECRET_KEY"] = config("SECRET_KEY")  # Change this!
 app.config["JWT_COOKIE_SECURE"] = False
-app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_TOKEN_LOCATION"] = ["headers","cookies"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 

@@ -67,6 +67,7 @@ def logout():
 
 #Get all Students
 @app.route('/students', methods=['GET'])
+@jwt_required()
 def get_all_students():
     all_students = Student.query.all()
     result_set = students_schema.dump(all_students)
@@ -74,12 +75,14 @@ def get_all_students():
 
 # Get student id route
 @app.route('/students/<int:id>', methods=["GET"])
+@jwt_required()
 def get_student(id):
     student_data = Student.query.get_or_404(int(id))
     return student_schema.jsonify(student_data)
 
 # Create new student route
 @app.route("/students", methods=["POST"])
+@jwt_required()
 def create_student():
     try: 
         username = request.json["username"]
@@ -99,35 +102,44 @@ def create_student():
 
 # Update student
 @app.route("/students/<int:id>", methods=["PATCH"])
+@jwt_required()
 def update_student(id):
-    get_student = Student.query.get_or_404(int(id))
-    
-    username = request.json["username"]
-    password = request.json["password"]
-    firstname = request.json["firstname"]
-    lastname = request.json["lastname"]
-    teacher_id = request.json["teacher_id"]
+    try:
+        get_student = Student.query.get_or_404(int(id))
+        
+        username = request.json["username"]
+        password = request.json["password"]
+        firstname = request.json["firstname"]
+        lastname = request.json["lastname"]
+        teacher_id = request.json["teacher_id"]
 
-    get_student.username = username
-    get_student.password = password
-    get_student.firstname = firstname
-    get_student.lastname = lastname
-    get_student.teacher_id = teacher_id
+        get_student.username = username
+        get_student.password = password
+        get_student.firstname = firstname
+        get_student.lastname = lastname
+        get_student.teacher_id = teacher_id
 
-    db.session.commit()
+        db.session.commit()
 
-    return student_schema.jsonify(get_student)
+        return student_schema.jsonify(get_student)
+    except Exception as e:
+        return jsonify({"Error" : "Can't update"})
 # Delete student
 @app.route("/students/<int:id>", methods=["DELETE"])
+@jwt_required()
 def delete_student(id):
-    get_student = Student.query.get_or_404(int(id))
-    db.session.delete(get_student)
-    db.session.commit()
-    return jsonify({"Success": "deleted"})
+    try:
+        get_student = Student.query.get_or_404(int(id))
+        db.session.delete(get_student)
+        db.session.commit()
+        return jsonify({"Success": "deleted"})
+    except Exception as e:
+        return jsonify({"Error" : "Can't delete"})
 
 # =================================TEACHER ROUTE========================
 # get all teachers route
 @app.route('/teachers', methods=['GET'])
+@jwt_required()
 def get_all_teachers():
     all_teachers = Teacher.query.all()
     result = teachers_schema.dump(all_teachers)
@@ -135,17 +147,20 @@ def get_all_teachers():
 
 # Get teacher id route
 @app.route('/teachers/<int:id>')
+@jwt_required()
 def get_teacher(id):
     teacher_data = Teacher.query.get_or_404(int(id))
     return teacher_schema.jsonify(teacher_data)
 
 @app.route("/teachers/<int:id>/class")
+@jwt_required()
 def get_teacher_class(id):
     result =  db.session.query(Student.username, Student.password_hashed, Student.firstname, Student.lastname, Student.teacher_id).filter(Student.teacher_id == id)
     return students_schema.jsonify(result)
 
 # Create teacher route
 @app.route("/teachers", methods=["POST"])
+@jwt_required()
 def create_teacher():
     try: 
         username = request.json["username"]
@@ -163,25 +178,30 @@ def create_teacher():
 
 # Update teacher route
 @app.route("/teachers/<int:id>", methods=["PATCH"])
+@jwt_required()
 def update_teacher(id):
-    get_teacher = Teacher.query.get_or_404(int(id))
-    
-    username = request.json["username"]
-    password = request.json["password"]
-    firstname = request.json["firstname"]
-    lastname = request.json["lastname"]
+    try:
+        get_teacher = Teacher.query.get_or_404(int(id))
+        
+        username = request.json["username"]
+        password = request.json["password"]
+        firstname = request.json["firstname"]
+        lastname = request.json["lastname"]
 
-    get_teacher.username = username
-    get_teacher.password = password
-    get_teacher.firstname = firstname
-    get_teacher.lastname = lastname
+        get_teacher.username = username
+        get_teacher.password = password
+        get_teacher.firstname = firstname
+        get_teacher.lastname = lastname
 
-    db.session.commit()
+        db.session.commit()
 
-    return student_schema.jsonify(get_teacher)
+        return student_schema.jsonify(get_teacher)
+    except Exception as e:
+        return jsonify({"Error" : "Can't update"})
 
 # Get teacher class's exercise
 @app.route("/teachers/<int:id>/class/exercise")
+@jwt_required()
 def get_teacher_class_exercise(id):
     results = db.session.query(Student.username, Student.firstname, Student.lastname, Association.exercise_id, Association.completed, Association.score, Exercise.topic).join(Student).join(Exercise).filter(Student.teacher_id == id)
     return teacherClass_schema.jsonify(results)
@@ -203,12 +223,14 @@ def create_student_homework():
 
 # Get specific student's exercise/homework
 @app.route("/students/<int:id>/exercises")
+@jwt_required()
 def get_students_exercise(id):
     results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id)
     return studentExercises_schema.jsonify(results)
 
 # View non completed homework
 @app.route("/students/<int:id>/notcompletedexercises")
+@jwt_required()
 def get_students_notcompleted_exercise(id):
     results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.completed == False)
     return studentExercises_schema.jsonify(results)
@@ -216,34 +238,47 @@ def get_students_notcompleted_exercise(id):
 
 # Get a specific students exercise
 @app.route("/students/<int:id>/exercise/<int:exid>", methods=["GET"])
+@jwt_required()
 def get_specifc_student_exercise(id, exid):
-    results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.exercise_id == exid)
-    return studentExercises_schema.jsonify(results)
+    try:
+        results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.exercise_id == exid)
+        return studentExercises_schema.jsonify(results)
+    except:
+        return jsonify({"Error" : "student or exercise does not exist"})
 
     
 # ======================Homework/Exercise==================================
 
 # Complete student exercise
 @app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["PATCH"])
+@jwt_required()
 def complete_student_exercise(id, exid):
-    results = Association.query.filter(Association.student_id == id).filter(Association.exercise_id == exid).first()
-    
-    results.completed = True
-    db.session.commit()
-    return studentoneExercises_schema.jsonify(results)
+    try:
+        results = Association.query.filter(Association.student_id == id).filter(Association.exercise_id == exid).first()
+        
+        results.completed = True
+        db.session.commit()
+        return studentoneExercises_schema.jsonify(results)
+    except IndexError as e:
+        return jsonify({"Error" : "Can't update"})
 
 #Update student's exercise score
 @app.route("/students/<int:id>/exercise/<int:exid>/score", methods=["PATCH"])
+@jwt_required()
 def update_student_score(id, exid):
-    results = Association.query.filter(Association.student_id == id).filter(Association.exercise_id == exid).first()
-    
-    homework = request.json["score"]
-    results.score = homework
-    db.session.commit()
-    return studentoneExercises_schema.jsonify(results)
+    try:
+        results = Association.query.filter(Association.student_id == id).filter(Association.exercise_id == exid).first()
+        
+        homework = request.json["score"]
+        results.score = homework
+        db.session.commit()
+        return studentoneExercises_schema.jsonify(results)
+    except Exception as e:
+        return jsonify({"Error" : "Can't update"})
 
 # View completed exercises seperate from non completed ones
 @app.route("/students/<int:id>/completedexercises", methods=["GET"])
+@jwt_required()
 def completed_student_exercises(id):
     results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.completed == True)
     return studentExercises_schema.jsonify(results)
