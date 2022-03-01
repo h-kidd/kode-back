@@ -46,17 +46,30 @@ def refresh_expiring_jwts(response):
 
 # Create a route to authenticate your users and return JWTs. The
 # create_access_token() function is used to actually generate the JWT.
-@app.route("/token", methods=["POST"])
-def token():
+@app.route("/token/teacher", methods=["POST"])
+def token_teacher():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 
-    user = Student.query.filter_by(username=username).one_or_none() or Teacher.query.filter_by(username=username).one_or_none()
+    user = Teacher.query.filter_by(username=username).one_or_none()
     if not user or not user.verify_password(password):
         return jsonify("Wrong username or password"), 401
 
     access_token = create_access_token(identity=user)
     return jsonify(access_token=access_token)
+
+@app.route("/token/student", methods=["POST"])
+def token_student():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+
+    user = Student.query.filter_by(username=username).one_or_none()
+    if not user or not user.verify_password(password):
+        return jsonify("Wrong username or password"), 401
+
+    access_token = create_access_token(identity=user)
+    return jsonify(access_token=access_token)
+
 
 @app.route("/logout", methods=["POST"])
 def logout():
