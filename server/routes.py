@@ -1,9 +1,9 @@
 from flask_jwt_extended import create_access_token, unset_jwt_cookies,  set_access_cookies, get_jwt, get_jwt_identity, jwt_required
 from flask import jsonify, request
 from server import jwt, app, db
-from server.models import Student ,Teacher, Question, Exercise
+from server.models import Student ,Teacher, Question, Exercise, Association
 from datetime import timedelta, timezone, datetime
-from server.models import student_schema, students_schema, teacher_schema, teachers_schema, student_exercise, studentsexercise_schema, completed_schema, classExercises_schema, completed_single_schema
+from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentExercises_schema, teacherClass_schema, studentoneExercises_schema
 
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -141,8 +141,6 @@ def get_teacher(id):
 
 @app.route("/teachers/<int:id>/class")
 def get_teacher_class(id):
-    # result = db.session.query(Student, Teacher).join(Teacher).filter(Teacher.id == id).all()
-    # result = db.session.query(Teacher.firstname, Teacher.id, Student.id, Student.firstname, Student.lastname, Student.username, Student.password_hashed, Student.lastname, Student.teacher_id).join(Teacher).filter(Teacher.id == id).all()
     result =  db.session.query(Student.username, Student.password_hashed, Student.firstname, Student.lastname, Student.teacher_id).filter(Student.teacher_id == id)
     return students_schema.jsonify(result)
 
@@ -185,14 +183,13 @@ def update_teacher(id):
 # Get teacher class's exercise
 @app.route("/teachers/<int:id>/class/exercise")
 def get_teacher_class_exercise(id):
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Student.username, Student.password_hashed, Student.firstname, Student.lastname).join(Student).filter(Student.teacher_id == id)
-    return classExercises_schema.jsonify(results)
-
+    results = db.session.query(Student.username, Student.firstname, Student.lastname, Association.exercise_id, Association.completed, Association.score, Exercise.topic).join(Student).join(Exercise).filter(Student.teacher_id == id)
+    return teacherClass_schema.jsonify(results)
 
 # Update teacher classes homework
 @app.route("/teachers/<int:id>/class/exercise", methods=["POST"])
 def update_teacher_class_homework(id):  
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id).join(Student).filter(Student.teacher_id == id)
+    results = Teacher.query.filter(Teacher.id == id).all()
 
     homework = request.json["exercise_id"]
 
@@ -201,37 +198,32 @@ def update_teacher_class_homework(id):
 
     db.session.commit()
     
-    return students_schema.jsonify(results)
+    return studentExercises_schema.jsonify(results)
 
 # Get specific student's exercise/homework
 @app.route("/students/<int:id>/exercise")
 def get_students_exercise(id):
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id)
-    return completed_schema.jsonify(results)
+    results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id)
+    return studentExercises_schema.jsonify(results)
 
 
+# Get a specific students exercise
 @app.route("/students/<int:id>/exercise/<int:exid>", methods=["GET"])
 def get_specifc_student_exercise(id, exid):
-    results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
-    return completed_schema.jsonify(results)
-
-
-# Complete specific student exercise
-@app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["GET"])
-def complete_student_exercise(id, exid):
-    # results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.topic, Exercise.difficulty, Exercise.completed, Exercise.score).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid)
-
-    # results = db.session.query(student_exercise.c.student_id, student_exercise.c.exercise_id, Exercise.completed).join(Exercise).filter(student_exercise.c.student_id == id).filter(student_exercise.c.exercise_id == exid).first()
-
-
-    results = db.session.query(student_exercise.c.student_id).join(Exercise).filter(student_exercise.c.student_id == id, student_exercise.c.exercise_id == exid).one()
-   
-
-    return studentsexercise_schema.jsonify(results)
+    results = db.session.query(Association.student_id, Association.exercise_id, Association.completed, Association.score, Exercise.topic, Exercise.difficulty).join(Exercise).filter(Association.student_id == id).filter(Association.exercise_id == exid)
+    return studentExercises_schema.jsonify(results)
 
     
 # ======================Homework/Exercise==================================
 
+# Complete student exercise
+@app.route("/students/<int:id>/exercise/<int:exid>/complete", methods=["PATCH"])
+def complete_student_exercise(id, exid):
+    results = Association.query.filter(Association.student_id == id).filter(Association.exercise_id == exid).first()
+    
+    results.completed = True
+    db.session.commit()
+    return studentoneExercises_schema.jsonify(results)
 
 
 # @app.route("/students/<int:id>/exercise/<int:exid>/s", methods=["GET"])

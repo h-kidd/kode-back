@@ -1,10 +1,14 @@
 from server import db, ma
 from werkzeug.security import generate_password_hash, check_password_hash
 
-student_exercise = db.Table('student_exercise',
-    db.Column('student_id', db.Integer, db.ForeignKey('student.id')),
-    db.Column('exercise_id', db.Integer, db.ForeignKey('exercise.id'))
-)
+class Association(db.Model):
+
+    student_id = db.Column(db.ForeignKey('student.id'), primary_key=True)
+    exercise_id = db.Column(db.ForeignKey('exercise.id'), primary_key=True)
+    completed= db.Column(db.Boolean, default=False)
+    score = db.Column(db.Integer, default=0)
+    exercise = db.relationship('Exercise', back_populates='students')
+    student = db.relationship('Student', back_populates='exercises')
 
 class StudentexerciseSchema(ma.Schema):
     class Meta:
@@ -21,7 +25,7 @@ class Student(db.Model):
     lastname = db.Column(db.String(20), nullable=False)
     # exercise_id = db.Column(db.Integer, db.ForeignKey("exercise.id"), nullable=True )
     #backref makes students column in exercise table
-    exercises = db.relationship('Exercise', secondary = student_exercise, backref='students')
+    exercises = db.relationship("Association", back_populates="student")
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False )
 
     #password stuff
@@ -41,7 +45,7 @@ class Student(db.Model):
 # Student schema to help jsonify objects
 class StudentSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "password_hashed", "firstname", "lastname" "teacher_id")
+        fields = ("id", "username", "password_hashed", "firstname", "lastname","teacher_id")
 student_schema = StudentSchema(many = False)
 students_schema = StudentSchema(many = True)
 
@@ -81,11 +85,9 @@ teachers_schema = TeachersSchema(many = True)
 
 class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    # students = db.relationship("Student", backref="exercise", lazy=True)
+    students = db.relationship("Association", back_populates="exercise")
     topic = db.Column(db.String(20), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)
-    completed = db.Column(db.Boolean, default=False)
-    score = db.Column(db.Integer, default=0)
 
     def __repr__(self):
         return f"Exercise('{self.completed}','{self.score} ')"
@@ -108,13 +110,19 @@ class Question(db.Model):
         return f"Question('{self.topic}','{self.difficulty} ','{self.question} ','{self.answer} ','{self.options} ')"
 
 
-class CompletedSchema(ma.Schema):
+class AssociationSchema(ma.Schema):
     class Meta:
-        fields = ("student_id", "exercise_id", "topic", "difficulty", "completed", "score")
-completed_schema = CompletedSchema(many=True)
-completed_single_schema=CompletedSchema()
+        fields = ("username", "firstname", "lastname", "exercise_id","completed","score", "topic")
+teacherClass_schema = AssociationSchema(many=True)
+
     
-class ClassExercise(ma.Schema):
+class StudentExercise(ma.Schema):
     class Meta:
-        fields = ("student_id", "exercise_id","username","password_hashed", "firstname", "lastname")
-classExercises_schema = ClassExercise(many=True)
+        fields = ("student_id", "exercise_id","completed","score", "topic", "difficulty")
+studentExercises_schema = StudentExercise(many=True)
+studentoneExercises_schema = StudentExercise(many=False)
+
+class CompleteExercise(ma.Schema):
+        class Meta:
+            fields = ("student_id", "exercise_id","completed","score")
+completeExercise_schema = StudentExercise(many=True)
