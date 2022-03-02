@@ -3,7 +3,7 @@ from flask import jsonify, request
 from server import jwt, app, db
 from server.models import Student ,Teacher, Question, Exercise, Association
 from datetime import timedelta, timezone, datetime
-from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentExercises_schema, teacherClass_schema, studentoneExercises_schema, questions_schema
+from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentExercises_schema, teacherClass_schema, studentoneExercises_schema, questions_schema, exercisesSchema
 import json
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
@@ -71,7 +71,7 @@ def token_student():
     if not user or not user.verify_password(password):
         return jsonify("Wrong username or password"), 401
 
-    additional_claims = {"username":user.username,"firstname":user.firstname,"lastname":user.lastname,"teacher_id":user.teacher_id}
+    additional_claims = {"username":user.username,"firstname":user.firstname,"lastname":user.lastname,"teacher_id":user.teacher_id, "student_id":user.id}
     access_token = create_access_token(identity=user)
     return jsonify(access_token=access_token,additional_claims=additional_claims)
 
@@ -306,4 +306,10 @@ def get_questions():
     questions = Question.query.all()
     result_set = questions_schema.dump(questions)
     return jsonify(result_set)
+
+@app.route("/exercises")
+def get_exercises():
+    exercises = Exercise.query.all()
+    result = exercisesSchema.dump(exercises)
+    return jsonify(result)
 
