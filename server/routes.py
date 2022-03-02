@@ -4,7 +4,7 @@ from server import jwt, app, db
 from server.models import Student ,Teacher, Question, Exercise, Association
 from datetime import timedelta, timezone, datetime
 from server.models import student_schema, students_schema, teacher_schema, teachers_schema, studentExercises_schema, teacherClass_schema, studentoneExercises_schema, questions_schema
-
+import json
 # Register a callback function that takes whatever object is passed in as the
 # identity when creating JWTs and converts it to a JSON serializable format.
 @jwt.user_identity_loader
@@ -38,7 +38,10 @@ def refresh_expiring_jwts(response):
         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
         if target_timestamp > exp_timestamp:
             access_token = create_access_token(identity=get_jwt_identity())
-            set_access_cookies(response, access_token)
+            data = response.get_json()
+            if type(data) is dict:
+                data["access_token"] = access_token 
+                response.data = json.dumps(data)
         return response
     except (RuntimeError, KeyError):
         # Case where there is not a valid JWT. Just return the original respone
@@ -55,8 +58,9 @@ def token_teacher():
     if not user or not user.verify_password(password):
         return jsonify("Wrong username or password"), 401
 
+    additional_claims = {"username":user.username,"firstname":user.firstname,"lastname":user.lastname,"teacher_id":user.id}
     access_token = create_access_token(identity=user)
-    return jsonify(access_token=access_token)
+    return jsonify(access_token=access_token,additional_claims=additional_claims)
 
 @app.route("/token/student", methods=["POST"])
 def token_student():
@@ -67,8 +71,9 @@ def token_student():
     if not user or not user.verify_password(password):
         return jsonify("Wrong username or password"), 401
 
+    additional_claims = {"username":user.username,"firstname":user.firstname,"lastname":user.lastname,"teacher_id":user.teacher_id}
     access_token = create_access_token(identity=user)
-    return jsonify(access_token=access_token)
+    return jsonify(access_token=access_token,additional_claims=additional_claims)
 
 
 @app.route("/logout", methods=["POST"])
