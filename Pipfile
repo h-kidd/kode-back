@@ -15,6 +15,7 @@ python-decouple = "*"
 simple-websocket = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
+gunicorn = "*"
 
 [dev-packages]
 pytest = "*"
