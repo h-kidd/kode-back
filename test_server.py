@@ -182,7 +182,7 @@ def test_get_teacher_student(api):
 
 def test_get_questions(api):
     #Should be able to access a list of question by subject and difficulty
-    res = api.get('/questions/maths1/easy')
+    res = api.get('/questions')
     assert res.status == '200 OK'
     assert res.json == {'questions': [
         {'topic':'maths', 'difficulty':'easy', 'question': ['How would you get the output to equal 10?', '___=10'], 'answer': ['5*2', '2*5'], 'options': ['5', '/', '4', '*', '2', '+']},
