@@ -1,15 +1,6 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from flask_socketio import SocketIO
+from server import socket, app
 
-app = Flask(__name__)
-CORS(app)
-socket = SocketIO(app, cors_allowed_origins="*")
-
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    return {'message': 'Hello!'}
-
+# socket
 @socket.on('create')
 def on_join(room):
     socket.join_room(room)
@@ -32,6 +23,7 @@ def on_send_score(data):
     name = data['name']
     score = data['score']
     socket.emit('user_score', {'name': name, 'score': score}, room=room)
+
 
 if __name__ == '__main__':
     socket.run(app)
