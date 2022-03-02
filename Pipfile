@@ -16,6 +16,7 @@ simple-websocket = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 gunicorn = "*"
+gevent = "*"
 
 [dev-packages]
 pytest = "*"

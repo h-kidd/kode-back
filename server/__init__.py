@@ -20,7 +20,7 @@ app.config["JWT_TOKEN_LOCATION"] = ["headers","cookies"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 
-socket = SocketIO(app, cors_allowed_origins="*")
+socket = SocketIO(app, cors_allowed_origins="https://kode-client.netlify.app")
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 jwt = JWTManager(app)
